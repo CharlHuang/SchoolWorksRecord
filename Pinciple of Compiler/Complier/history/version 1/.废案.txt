@@ -1,0 +1,208 @@
+while(current_char < input.length){
+        if((charNow === "/" && input[current_char+1] === '/' )||(charNow === "-" && input[current_char+1] === '-')) {
+            while(charNow != '\n') {
+                charNow = input[current_char++];
+            }
+        }
+        //检测到字符
+
+        if(LETTERS.test(charNow)){
+            var current_stat = 1;
+            var token = "";
+            //获取字段 state 1
+            while(LETTERS.test(charNow)){
+                token += charNow;
+                charNow = input[++current_char];
+            }
+            var keyJudge = false;
+            token = token.toUpperCase();
+            for(let i=0; i<TokenTable.length; i++){
+                if(token == TokenTable[i][1]){
+                    tokens.push({token_type: TokenTable[i][0], token_value: token});
+                    keyJudge = true;
+                }
+            }
+            if(keyJudge) continue;
+        }
+        //检测到数字
+        if(DIGITS.test(charNow)){
+            var current_stat = 2;
+            var token = "";
+            //state 2
+            while((DIGITS.test(charNow) || charNow ==='.')&& current_stat === 2){
+                if(charNow === '.')
+                    current_stat = 3;
+                token += charNow;
+                charNow = input[++current_char];
+            }
+            //state 3
+            while(current_stat === 3 && DIGITS.test(charNow)){
+                token += charNow;
+                charNow = input[++current_char];
+            }
+            tokens.push({token_type: "NUMBER", token_value: token});
+            continue;
+        }
+        // 匹配运算符
+        if(charNow === OPERATORS.find(ele => ele===charNow)) {
+            tokens.push({
+                token_type: 'operator',
+                token_value: input[current_char+1] == '*' ? '**' : charNow
+            });
+            current_char++;
+            input[current_char] == "*" ? current_char++ : "";
+            continue;
+        }
+
+        // 匹配分隔符
+        if(charNow === '(' || charNow === ')') {
+            tokens.push({
+                token_type: "PAREN",
+                token_value: charNow
+            });
+            current_char++;
+            continue;
+        }
+        if(charNow === ',') {
+            tokens.push({
+                token_type: "COMMA",
+                token_value: ","
+            });
+            current_char++;
+            continue;
+        }
+        if(charNow === ';') {
+            tokens.push({
+                token_type: "SEMIC",
+                token_value: ";"
+            });
+            current_char++;
+            continue;
+        }
+        if(charNow === '\n') {
+            current_char++;
+            continue;
+        }
+        throw new TypeError('无效标识符');
+        }
+    return tokens;
+
+    ////////////********************************真废案
+    var current_char = 0;
+    var start_stat = {state:0, token_type: ''};
+    var tokens = [];
+    var token;
+    var current_stat;
+    var charNow = input[current_char];
+    var go_on;
+    do{
+        go_on = true;
+        current_stat = start_stat;
+        token = '';
+        //1. 预处理，尾部加空格，跳过空格
+        input += ' ';
+        while(charNow === ' ' || charNow === '\n'){
+            charNow = input[++current_char];
+        }
+        //2. 扫描出一个Token
+        while(current_char < input.length && go_on){
+            charNow = input[current_char];
+            token += charNow;
+            current_stat = dfa_move(current_stat, charNow);
+            go_on = judgeGoOn(current_stat, input[current_char+1]);
+            current_char++;
+        }
+        //3. 后处理
+        if(current_stat.state === -1)
+            return 
+        
+        tokens.push({token_type: current_stat.token_type, token_value: token});
+    }while(current_char < input.length);
+/*******************************************
+
+**************************************/
+
+function dfa_move(_stat, charNow){
+    switch (_stat.state) {
+        case 0:
+            if(LETTERS.test(charNow)|| charNow ==='_') return {state:1, token_type:'ID'}; 
+            if(DIGITS.test(charNow)) return {state:2, token_type:'NUMBER'}; 
+            if(charNow === '*') return {state:4, token_type:'MUL'}; 
+            if(charNow === '/') return {state:6, token_type:'DIV'}; 
+            if(charNow === '-') return {state:7, token_type:'MINUS'}; 
+            if(charNow === '+') return {state:8, token_type:'PLUS'}; 
+            if(charNow === ',') return {state:9, token_type:'COMMA'}; 
+            if(charNow === ';') return {state:10, token_type:'ID'}; 
+            if(charNow === '(') return {state:11, token_type:'L_BRACKET'}; 
+            if(charNow === ')') return {state:12, token_type:'R_BRACKET'}; 
+            break;
+        case 1:
+            if(LETTERS.test(charNow)||charNow === '_' ||DIGITS.test(charNow)) return {state:1, token_type:'ID'}; 
+            break;
+        case 2:
+            if(charNow === '.') return {state:3, token_type:'NUMBER'}; 
+            if(DIGITS.test(charNow)) return {state:2, token_type:'NUMBER'}; 
+            break;
+        case 3:
+            if(DIGITS.test(charNow)) return {state:3, token_type:'NUMBER'}; 
+            break;
+        case 4:
+            if(charNow === '*') return {state:5, token_type:'POWER'}; 
+            break;
+        case 6:
+            if(charNow === '/') return {state:13, token_type:'COMMENT'};
+            break;
+        case 7:
+            if(charNow === '-') return {state:13, token_type:'COMMENT'};
+            break;
+        default:
+            break;
+    }
+    return {state:-1, token_type: 'NONTOKEN'};
+}
+function judgeGoOn(_stat, charNext){
+    var go_on = true;
+    switch(_stat.state){
+        case 5:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case -1: 
+            go_on = false;
+            break;
+        default:
+            break;
+    }
+    return go_on;
+}
+
+/*************************************************************/
+                if(tokenNow.type === 'FROM'){
+                    ++current_token;
+                    node.para.push(Expression());   // Expression
+                    tokenNow = tokens[current_token];
+                    if(tokenNow.type === 'TO'){
+                        ++current_token;
+                        node.para.push(Expression());   // Expression
+                        tokenNow = tokens[current_token];
+                        if(tokenNow.token_type === 'STEP'){
+                            ++current_token;
+                            node.para.push(Expression());   // Expression
+                            tokenNow = tokens[current_token];
+                            if(tokenNow.token_type === 'DRAW'){
+                                tokenNow = tokens[++current_token];
+                                if(tokenNow.token_type === 'L_BRACKET'){
+                                    ++current_token;
+                                    node.para.push(Expression());   // Expression
+                                    tokenNow = tokens[current_token];
+                                    if(tokenNow.token_type === 'L_BRACKET'){
+
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
